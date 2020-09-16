@@ -9,8 +9,7 @@
 void initListByRandItems(std::list<int>& list);
 
 // Данная функция подсчитывает количество нулевых или единичных бит (в зависимости от передаваемого в функцию параметра) в элементах
-template <typename T>
-int countOfBit(T element, int numberOfThread);
+int countOfBit(int element, int numberOfThread);
 
 // Данная функция подсчитывает количество нулевых или единичных битов в элементах потока (в зависимости от передаваемых параметров),
 // учитывает количество пройденных элементов, а также освобождает учтённые элементы сразу после учёта
@@ -25,7 +24,7 @@ int main()
     srand(static_cast<unsigned int>(time(0)));
 
     // Данная переменная отвечает за размер списка list
-    const int SIZE = 21;
+    const int SIZE = 101;
 
     // Счетчики нулевых и единичных битов
     int zeroBitsCounter = 0;
@@ -77,10 +76,9 @@ void initListByRandItems(std::list<int>& list)
     }
 }
 
-template <typename T>
-int countOfBit(T element, int numberOfThread) {
+int countOfBit(int element, int numberOfThread) {
     int result{ 0 };
-    int shiftBySize = ((sizeof(T) * 8) - 1);
+    int shiftBySize = ((sizeof(int) * 8) - 1);
     if (element < 0) {
         result++;
         element &= ((1 << shiftBySize) - 1);
@@ -93,7 +91,7 @@ int countOfBit(T element, int numberOfThread) {
     switch (numberOfThread)
     {
     case 0:
-        return (sizeof(T) * 8) - result;
+        return (sizeof(int) * 8) - result;
 
     case 1:
         return result;
