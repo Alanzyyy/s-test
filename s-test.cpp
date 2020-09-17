@@ -13,7 +13,7 @@ int countOfBit(int element, int numberOfThread);
 
 // Данная функция подсчитывает количество нулевых или единичных битов в элементах потока (в зависимости от передаваемых параметров),
 // учитывает количество пройденных элементов, а также освобождает учтённые элементы сразу после учёта
-void find(std::list<int>& list, int& bitCounter, int numberOfThread, int& removedItemCounter);
+void find(std::list<int>& list, int& bitCounter, int numberOfThread, int& removedItemCounter, int sizeofth);
 
 std::mutex mtx;
 
@@ -40,22 +40,26 @@ int main()
 
     std::list<int> list(SIZE);
 
+    // Количество элементов в списке, обрабатываемых первым и вторым потоком
+    int sizeofth1 = SIZE / 2;
+    int sizeofth2 = (SIZE / 2) + (SIZE % 2);
+
     // Заполняем список случайными числами
     initListByRandItems(list);
 
-    for (auto i = list.begin(); i != list.end(); ++i)
-    {
-        std::cout << *i << " ";
-    }
+    //for (auto i = list.begin(); i != list.end(); ++i)
+    //{
+        //std::cout << *i << " ";
+    //}
     std::cout << "\n";
 
     // С данными параметрами функция, начиная с головы списка, считает количество нулевых бит в элементах,
     // а также количество пройденных элементов первым потоком
-    std::thread th1(find, std::ref(list), std::ref(zeroBitsCounter), thread1, std::ref(deletedByTh1));
+    std::thread th1(find, std::ref(list), std::ref(zeroBitsCounter), thread1, std::ref(deletedByTh1), sizeofth1);
 
     // С данными параметрами функция, начиная с хвоста списка, считает количество единичных бит в элементах,
     // а также количество пройденных элементов вторым потоком
-    std::thread th2(find, std::ref(list), std::ref(singleBitsCounter), thread2, std::ref(deletedByTh2));
+    std::thread th2(find, std::ref(list), std::ref(singleBitsCounter), thread2, std::ref(deletedByTh2), sizeofth2);
 
     th1.join();
     th2.join();
@@ -64,6 +68,9 @@ int main()
     std::cout << "Количество единичных бит: " << singleBitsCounter << "\n";
     std::cout << "Количество пройденных первым потоком элементов: " << deletedByTh1 << "\n";
     std::cout << "Количество пройденных вторым потоком элементов: " << deletedByTh2 << "\n";
+    
+    // Время работы программы
+    std::cout << "runtime = " << clock() / 1000.0 << "\n";
 
     return 0;
 }
@@ -98,32 +105,26 @@ int countOfBit(int element, int numberOfThread) {
     }
 }
 
-void find(std::list<int>& list, int& bitCounter, int numberOfThread, int& removedItemCounter)
+void find(std::list<int>& list, int& bitCounter, int numberOfThread, int& removedItemCounter, int sizeofth)
 {
-    while (true)
+    switch (numberOfThread)
     {
-        mtx.lock();
-        if (list.size() > 0)
+    case 0:
+        for (int i = 0; i < sizeofth; i++)
         {
-            switch (numberOfThread)
-            {
-            case 0:
-                bitCounter += countOfBit(*(list.begin()), numberOfThread);
-                list.pop_front();
-                removedItemCounter++;
-                break;
-
-            case 1:
-                bitCounter += countOfBit(*(list.rbegin()), numberOfThread);
-                list.pop_back();
-                removedItemCounter++;
-                break;
-            }
+            bitCounter += countOfBit(*(list.begin()), numberOfThread);
+            list.pop_front();
+            removedItemCounter++;
         }
-        mtx.unlock();
-        std::this_thread::sleep_for(std::chrono::milliseconds(1));
+        break;
 
-        if (list.size() == 0)
-            break;
+    case 1:
+        for (int i = 0; i < sizeofth; i++)
+        {
+            bitCounter += countOfBit(*(list.rbegin()), numberOfThread);
+            list.pop_back();
+            removedItemCounter++;
+        }
+        break;
     }
 }
